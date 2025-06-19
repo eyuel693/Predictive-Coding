@@ -142,3 +142,80 @@ def get_predictions(r_list, W_list):
 def get_accuracy(predictions, Y_true):
     predicted_classes = np.argmax(predictions, axis=0)
     return np.sum(predicted_classes == Y_true) / Y_true.size
+
+W1, W2, W3, L2, L3 = init_predictive_coding_params()
+W_list = [W1, W2, W3]
+L_list = [L2, L3]
+
+print("Initial weights and lateral matrices:")
+print("W1 shape:", W1.shape, "\nW1:\n", W1[:3, :3])
+print("W2 shape:", W2.shape, "\nW2:\n", W2[:3, :3])
+print("W3 shape:", W3.shape, "\nW3:\n", W3[:3, :3])
+print("L2 shape:", L2.shape, "\nL2:\n", L2[:3, :3])
+print("L3 shape:", L3.shape, "\nL3:\n", L3[:3, :3])
+
+num_training_epochs = 5
+
+print("\n--- Starting Training of Predictive Coding Model ---")
+for epoch in range(num_training_epochs):
+    print(f"\nEpoch {epoch + 1}/{num_training_epochs}")
+    for i in range(m_train):
+        current_sample_input = X_train[:, i]
+        current_sample_label = Y_train[i]
+
+        r1 = current_sample_input.copy()
+        r2 = np.random.rand(hidden_size_1) * 0.1
+        r3 = np.random.rand(hidden_size_2) * 0.1
+        r4 = np.random.rand(output_size) * 0.1
+        r_list = [r1, r2, r3, r4]
+
+        for inf_step in range(num_inference_iterations):
+            r_list, e_list = update_representations(r_list, W_list, L_list, learning_rate_inference, lateral_strength, label=current_sample_label)
+            total_inf_error = np.sum([np.linalg.norm(e) ** 2 for e in e_list])
+            if total_inf_error < convergence_threshold:
+                break
+
+        W_list, dW_norms, dW_list = update_weights(r_list, e_list, W_list, gamma, dt)
+
+        if (i + 1) % 5000 == 0:
+            e1, e2, e3, e4 = e_list
+            dW1, dW2, dW3 = dW_list
+            predictions = get_predictions(r_list, W_list)
+            predicted_class = np.argmax(predictions)
+            print(f"  Processed {i + 1}/{m_train} samples. Current sample label: {current_sample_label}, Predicted: {predicted_class}")
+            print(f"    Errors: e1: {np.linalg.norm(e1):.6f}, e2: {np.linalg.norm(e2):.6f}, e3: {np.linalg.norm(e3):.6f}, e4: {np.linalg.norm(e4):.6f}")
+            print(f"    Weight updates: dW1: {np.mean(np.abs(dW1)):.6f}, dW2: {np.mean(np.abs(dW2)):.6f}, dW3: {np.mean(np.abs(dW3)):.6f}")
+
+    correct_predictions_dev = 0
+    total_dev_samples = X_dev.shape[1]
+    print(f"\n  Evaluating on Dev Set after Epoch {epoch + 1}...")
+    for i in range(total_dev_samples):
+        dev_input_sample = X_dev[:, i]
+        dev_label = Y_dev[i]
+
+        r1_dev = dev_input_sample.copy()
+        r2_dev = np.random.rand(hidden_size_1) * 0.1
+        r3_dev = np.random.rand(hidden_size_2) * 0.1
+        r4_dev = np.random.rand(output_size) * 0.1
+        r_list_dev = [r1_dev, r2_dev, r3_dev, r4_dev]
+
+        for inf_step_dev in range(num_inference_iterations):
+            r_list_dev, e_list_dev = update_representations(r_list_dev, W_list, L_list, learning_rate_inference, lateral_strength, label=dev_label)
+            total_inf_error_dev = np.sum([np.linalg.norm(e) ** 2 for e in e_list_dev])
+            if total_inf_error_dev < convergence_threshold:
+                break
+
+        final_output_probs = get_predictions(r_list_dev, W_list)
+        predicted_class_dev = np.argmax(final_output_probs)
+        if predicted_class_dev == dev_label:
+            correct_predictions_dev += 1
+
+        if i == 0:
+            e1_dev, e2_dev, e3_dev, e4_dev = e_list_dev
+            print(f"    Dev sample 1 errors: e1: {np.linalg.norm(e1_dev):.6f}, e2: {np.linalg.norm(e2_dev):.6f}, e3: {np.linalg.norm(e3_dev):.6f}, e4: {np.linalg.norm(e4_dev):.6f}")
+
+    accuracy_dev = correct_predictions_dev / total_dev_samples
+    print(f"  Dev Set Accuracy after Epoch {epoch + 1}: {accuracy_dev * 100:.2f}%")
+
+print("\n--- Training Complete ---")
+
