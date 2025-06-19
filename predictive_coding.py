@@ -246,3 +246,8 @@ predicted_class_test = np.argmax(final_output_probs_test)
 
 print(f"Predicted class: {predicted_class_test}")
 print(f"True label: {true_label}")
+plt.imshow(test_input.reshape(28, 28), cmap='gray')
+plt.title(f"Predicted: {predicted_class_test}, True: {true_label}")
+plt.axis('off')
+plt.savefig("outputs/my_plot.png")
+plt.close()
