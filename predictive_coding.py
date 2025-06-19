@@ -219,3 +219,30 @@ for epoch in range(num_training_epochs):
 
 print("\n--- Training Complete ---")
 
+print("\n--- Testing a single example after training ---")
+test_index = 0
+test_input = X_train[:, test_index]
+true_label = Y_train[test_index]
+
+r1_test = test_input.copy()
+r2_test = np.random.rand(hidden_size_1) * 0.1
+r3_test = np.random.rand(hidden_size_2) * 0.1
+r4_test = np.random.rand(output_size) * 0.1
+r_list_test = [r1_test, r2_test, r3_test, r4_test]
+
+print(f"Running inference for test sample (true label: {true_label})...")
+for inf_step_test in range(num_inference_iterations):
+    r_list_test, e_list_test = update_representations(r_list_test, W_list, L_list, learning_rate_inference, lateral_strength, label=true_label)
+    total_inf_error_test = np.sum([np.linalg.norm(e) ** 2 for e in e_list_test])
+    if total_inf_error_test < convergence_threshold:
+        print(f"    Inference converged at step {inf_step_test + 1}")
+        break
+
+e1_test, e2_test, e3_test, e4_test = e_list_test
+print(f"    Test sample errors: e1: {np.linalg.norm(e1_test):.6f}, e2: {np.linalg.norm(e2_test):.6f}, e3: {np.linalg.norm(e3_test):.6f}, e4: {np.linalg.norm(e4_test):.6f}")
+
+final_output_probs_test = get_predictions(r_list_test, W_list)
+predicted_class_test = np.argmax(final_output_probs_test)
+
+print(f"Predicted class: {predicted_class_test}")
+print(f"True label: {true_label}")
