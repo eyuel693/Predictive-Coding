@@ -8,14 +8,14 @@ This project implements a predictive coding neural network with Hebbian learning
 
 # Features
 ---
-**Architecture** Four layers (input: 784, hidden1: 128, hidden2: 64, output: 10).
-**Learning** Hebbian updates for weights (W1, W2: unsupervised; W3: supervised) based on activity correlations and output errors.
-**Inference** Iterative activity updates (up to 20 steps) to minimize layer-wise prediction errors (e1, e2, e3, e4).
-**Layer-by-layer error computation.**
-**State updates with ReLU.**
-**Normalized Hebbian weight updates.**
-**Lateral connections**
-**MNIST data processing, training, and visualization.**
+- **Architecture** Four layers (input: 784, hidden1: 128, hidden2: 64, output: 10).
+- **Learning** Hebbian updates for weights (W1, W2: unsupervised; W3: supervised) based on activity correlations and output errors.
+- **Inference** Iterative activity updates (up to 20 steps) to minimize layer-wise prediction errors (e1, e2, e3, e4).
+- **Layer-by-layer error computation.**
+- **State updates with ReLU.**
+- **Normalized Hebbian weight updates.**
+- **Lateral connections**
+- **MNIST data processing, training, and visualization.**
 
 ---
 
